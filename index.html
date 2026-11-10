@@ -1,18 +1,18 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تاج و تخت</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تاج و تخت | Throne & Crown</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1422;color:white;font-family:Tahoma}
-header{padding:13px;background:#142238}
-h2{color:#edc36d}
+body{margin:0;background:#0b1422;color:#f4f6fa;font-family:Tahoma,Arial}
+header{padding:13px 15px;background:#142238;border-bottom:1px solid #354a66}
+h2{margin:0 0 5px;color:#edc36d}
 #map{height:58vh;min-height:350px;background:#1685c4}
-.stats{display:flex;gap:7px;overflow:auto;padding:9px}
+.stats{display:flex;gap:7px;overflow-x:auto;padding:9px}
 .stat,.panel{background:#192a40;border:1px solid #3a506c;border-radius:11px;padding:10px}
 .stat{min-width:82px;text-align:center;font-size:12px}
 .stat b{display:block;color:#f1c96e;font-size:17px;margin-top:5px}
@@ -21,19 +21,30 @@ button{padding:11px 8px;border:0;border-radius:8px;background:#a9791d;color:whit
 button:disabled{opacity:.4}
 .muted{color:#b8c5d6;font-size:12px;line-height:1.9}
 #log{font-size:12px;line-height:1.9;max-height:105px;overflow:auto}
-.country-label{background:rgba(9,18,31,.85);border:1px solid #aaa;border-radius:5px;color:white;padding:2px 4px;font:10px Tahoma;white-space:nowrap;text-align:center}
-.country-label b{display:block}
+.country-label{background:rgba(9,18,31,.78);border:1px solid rgba(255,255,255,.45);border-radius:5px;color:#fff;padding:2px 4px;font:10px Tahoma;white-space:nowrap;text-align:center;box-shadow:0 1px 4px #111}
+.country-label b{display:block;font-size:10px}
 .country-label span{font-size:9px;color:#ffe09a}
+.leaflet-tooltip{background:rgba(9,18,31,.92);border:1px solid #d9bd78;color:white;font-family:Tahoma}
 .leaflet-container{font-family:Tahoma}
-.legend{display:flex;gap:12px;flex-wrap:wrap;padding:7px 12px;font-size:11px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:7px 12px;color:#dbe8f6;font-size:11px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:4px}
+#buildMenu{display:none;position:fixed;inset:0;background:rgba(3,9,18,.78);z-index:2000;align-items:center;justify-content:center;padding:14px}
+#buildCard{width:min(440px,100%);max-height:88vh;overflow:auto;background:#172940;border:1px solid #d4ad58;border-radius:16px;padding:16px;box-shadow:0 15px 55px #0009}
+#buildCard h3{margin:0 0 8px;color:#f1cd79}
+#buildCard .buildHint{font-size:12px;color:#c1ccda;line-height:1.8;margin-bottom:12px}
+.buildGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.buildBtn{width:100%;margin:0;min-height:72px;background:#263e5b;border:1px solid #526985;text-align:right;line-height:1.7}
+.buildBtn b{display:block;color:#ffdc91}
+.buildBtn small{color:#d0d9e5}
+.buildBtn:disabled{opacity:.4}
+#closeBuild{width:100%;margin:12px 0 0;background:#805d25}
+@media(max-width:420px){.buildGrid{grid-template-columns:1fr 1fr}#buildCard{padding:12px}}
 </style>
 </head>
 <body>
-
 <header>
 <h2>👑 تاج و تخت</h2>
-<small>THRONE & CROWN · نسخه ۴</small>
+<small>THRONE & CROWN · نسخه ۵ | ساخت‌وساز و توسعه کشورها</small>
 </header>
 
 <div class="stats">
@@ -48,369 +59,363 @@ button:disabled{opacity:.4}
 <div class="legend">
 <span><i class="dot" style="background:#1685c4"></i>اقیانوس و دریا</span>
 <span><i class="dot" style="background:#d5a43c"></i>قلمرو تو</span>
-<span><i class="dot" style="background:#8294a8"></i>کشورهای مستقل</span>
+<span><i class="dot" style="background:#8294a8"></i>کشورهای مستقل با رنگ اختصاصی</span>
 </div>
 
 <section class="panel">
 <h3>اطلاعات کشور انتخاب‌شده</h3>
 <b id="selected">کشوری انتخاب نشده</b>
 <p class="muted" id="info">روی یک کشور در نقشه بزن تا اطلاعات و ارتش آن را ببینی.</p>
-
-<button id="choose">انتخاب کشور من</button>
+<button id="choose">انتخاب به‌عنوان کشور من</button>
 <button id="attack" disabled>⚔️ حمله و تصرف</button>
 <button id="recruit" disabled>➕ جذب ۵۰ سرباز</button>
 <button id="pause">⏸ توقف زمان</button>
 <button id="reset">شروع دوباره</button>
-
 <h3>گزارش رویدادها</h3>
 <div id="log">به تاج و تخت خوش آمدی! یک کشور را برای شروع انتخاب کن.</div>
-
-<p class="muted">
-ارتش کشورهای مستقل به‌صورت اولیه تعیین می‌شود و به‌مرور رشد می‌کند.
-</p>
 </section>
+
+<div id="buildMenu" role="dialog" aria-modal="true">
+ <div id="buildCard">
+  <h3>🏗️ مدیریت کشور: <span id="buildCountry"></span></h3>
+  <div class="buildHint" id="buildHint"></div>
+  <div class="buildGrid" id="buildOptions"></div>
+  <button id="closeBuild">بستن منو</button>
+ </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/topojson-client@3"></script>
-
 <script>
 const $=id=>document.getElementById(id);
+const map=L.map('map',{minZoom:1,maxZoom:7,worldCopyJump:true,zoomControl:true}).setView([20,5],2);
 
-const map=L.map('map',{
-minZoom:1,
-maxZoom:7,
-worldCopyJump:true
-}).setView([20,5],2);
-
-let layer,labelLayer;
-let selectedId=null,capitalId=null;
-let owned=new Set();
-
+let layer,labelLayer,selectedId=null,capitalId=null,owned=new Set();
 let gold=1000,food=700,army=250,paused=false;
 let countries={};
 
 const names={
-"004":"افغانستان","008":"آلبانی","012":"الجزایر",
-"024":"آنگولا","032":"آرژانتین","036":"استرالیا",
-"040":"اتریش","031":"جمهوری آذربایجان",
-"050":"بنگلادش","056":"بلژیک","064":"بوتان",
-"068":"بولیوی","070":"بوسنی و هرزگوین",
-"076":"برزیل","100":"بلغارستان","104":"میانمار",
-"112":"بلاروس","116":"کامبوج","120":"کامرون",
-"124":"کانادا","144":"سری‌لانکا","152":"شیلی",
-"156":"چین","170":"کلمبیا","178":"کنگو",
-"180":"جمهوری دموکراتیک کنگو","188":"کاستاریکا",
-"191":"کرواسی","192":"کوبا","196":"قبرس",
-"203":"چک","208":"دانمارک","214":"جمهوری دومینیکن",
-"218":"اکوادور","818":"مصر","233":"استونی",
-"231":"اتیوپی","246":"فنلاند","250":"فرانسه",
-"276":"آلمان","288":"غنا","300":"یونان",
-"320":"گواتمالا","332":"هائیتی","340":"هندوراس",
-"348":"مجارستان","352":"ایسلند","356":"هند",
-"360":"اندونزی","364":"ایران","368":"عراق",
-"372":"ایرلند","376":"اسرائیل","380":"ایتالیا",
-"392":"ژاپن","400":"اردن","398":"قزاقستان",
-"404":"کنیا","408":"کره شمالی","410":"کره جنوبی",
-"414":"کویت","417":"قرقیزستان","418":"لائوس",
-"422":"لبنان","426":"لسوتو","434":"لیبی",
-"440":"لیتوانی","442":"لوکزامبورگ","450":"ماداگاسکار",
-"454":"مالاوی","458":"مالزی","466":"مالی",
-"478":"موریتانی","484":"مکزیک","496":"مغولستان",
-"498":"مولداوی","499":"مونته‌نگرو","504":"مراکش",
-"508":"موزامبیک","516":"نامیبیا","524":"نپال",
-"528":"هلند","554":"نیوزیلند","562":"نیجر",
-"566":"نیجریه","578":"نروژ","512":"عمان",
-"586":"پاکستان","591":"پاناما","598":"پاپوآ گینه نو",
-"600":"پاراگوئه","604":"پرو","608":"فیلیپین",
-"616":"لهستان","620":"پرتغال","634":"قطر",
-"642":"رومانی","643":"روسیه","646":"رواندا",
-"682":"عربستان سعودی","686":"سنگال","688":"صربستان",
-"694":"سیرالئون","702":"سنگاپور","703":"اسلواکی",
-"705":"اسلوونی","706":"سومالی","710":"آفریقای جنوبی",
-"724":"اسپانیا","728":"سودان جنوبی","729":"سودان",
-"752":"سوئد","756":"سوئیس","760":"سوریه",
-"764":"تایلند","762":"تاجیکستان","788":"تونس",
-"792":"ترکیه","795":"ترکمنستان","800":"اوگاندا",
-"804":"اوکراین","784":"امارات متحده عربی",
-"826":"بریتانیا","840":"ایالات متحده",
-"858":"اروگوئه","860":"ازبکستان","862":"ونزوئلا",
-"704":"ویتنام","887":"یمن","894":"زامبیا",
-"716":"زیمبابوه","051":"ارمنستان"
+"004":"افغانستان","008":"آلبانی","012":"الجزایر","024":"آنگولا","032":"آرژانتین",
+"036":"استرالیا","040":"اتریش","031":"جمهوری آذربایجان","050":"بنگلادش","056":"بلژیک",
+"064":"بوتان","068":"بولیوی","070":"بوسنی و هرزگوین","076":"برزیل","100":"بلغارستان",
+"104":"میانمار","112":"بلاروس","116":"کامبوج","120":"کامرون","124":"کانادا",
+"144":"سری‌لانکا","152":"شیلی","156":"چین","170":"کلمبیا","178":"کنگو",
+"180":"جمهوری دموکراتیک کنگو","188":"کاستاریکا","191":"کرواسی","192":"کوبا",
+"196":"قبرس","203":"چک","208":"دانمارک","214":"جمهوری دومینیکن","218":"اکوادور",
+"818":"مصر","233":"استونی","231":"اتیوپی","246":"فنلاند","250":"فرانسه",
+"276":"آلمان","288":"غنا","300":"یونان","320":"گواتمالا","332":"هائیتی","340":"هندوراس",
+"348":"مجارستان","352":"ایسلند","356":"هند","360":"اندونزی","364":"ایران","368":"عراق",
+"372":"ایرلند","376":"اسرائیل","380":"ایتالیا","392":"ژاپن","400":"اردن","398":"قزاقستان",
+"404":"کنیا","408":"کره شمالی","410":"کره جنوبی","414":"کویت","417":"قرقیزستان",
+"418":"لائوس","422":"لبنان","426":"لسوتو","434":"لیبی","440":"لیتوانی","442":"لوکزامبورگ",
+"450":"ماداگاسکار","454":"مالاوی","458":"مالزی","466":"مالی","478":"موریتانی",
+"484":"مکزیک","496":"مغولستان","498":"مولداوی","499":"مونته‌نگرو","504":"مراکش",
+"508":"موزامبیک","516":"نامیبیا","524":"نپال","528":"هلند","554":"نیوزیلند",
+"562":"نیجر","566":"نیجریه","578":"نروژ","512":"عمان","586":"پاکستان","591":"پاناما",
+"598":"پاپوآ گینه نو","600":"پاراگوئه","604":"پرو","608":"فیلیپین","616":"لهستان",
+"620":"پرتغال","634":"قطر","642":"رومانی","643":"روسیه","646":"رواندا","682":"عربستان سعودی",
+"686":"سنگال","688":"صربستان","694":"سیرالئون","702":"سنگاپور","703":"اسلواکی",
+"705":"اسلوونی","706":"سومالی","710":"آفریقای جنوبی","724":"اسپانیا","728":"سودان جنوبی",
+"729":"سودان","752":"سوئد","756":"سوئیس","760":"سوریه","764":"تایلند","762":"تاجیکستان",
+"788":"تونس","792":"ترکیه","795":"ترکمنستان","800":"اوگاندا","804":"اوکراین",
+"784":"امارات متحده عربی","826":"بریتانیا","840":"ایالات متحده","858":"اروگوئه",
+"860":"ازبکستان","862":"ونزوئلا","704":"ویتنام","887":"یمن","894":"زامبیا","716":"زیمبابوه",
+"051":"ارمنستان","090":"جزایر سلیمان","222":"السالوادور","232":"اریتره","262":"جیبوتی",
+"270":"گامبیا","324":"گینه","384":"ساحل عاج","430":"لیبریا","548":"وانواتو",
+"585":"پالائو","626":"تیمور شرقی","678":"سائوتومه و پرنسیپ","807":"مقدونیه شمالی"
 };
 
-function idOf(f){
-return String(f.id).padStart(3,'0');
-}
-
-function nameOf(f){
-let id=idOf(f);
-return names[id]||('کشور '+id);
-}
+function idOf(f){return String(f.id).padStart(3,'0')}
+function nameOf(f){let id=idOf(f);return names[id]||('کشور '+id)}
 
 function hashColor(id){
-let n=Number(id)*2654435761>>>0;
-let hue=n%360;
-return `hsl(${hue} 48% 48%)`;
+ let n=Number(id)*2654435761>>>0;
+ return `hsl(${n%360} 48% 48%)`;
 }
 
 function initialArmy(id){
-let n=Number(id);
-return 3000+((n*7919+12345)%47000);
+ let n=Number(id);
+ return 3000+((n*7919+12345)%47000);
 }
 
 function countryStyle(f){
-let id=idOf(f);
-return {
-color:owned.has(id)?'#ffe39a':'#27384c',
-weight:owned.has(id)?2.4:0.8,
-fillColor:owned.has(id)?'#d6a33b':hashColor(id),
-fillOpacity:0.9
-};
+ let id=idOf(f);
+ return {
+  color:owned.has(id)?'#ffe39a':'#27384c',
+  weight:owned.has(id)?2.4:0.8,
+  fillColor:owned.has(id)?'#d6a33b':hashColor(id),
+  fillOpacity:0.9
+ };
 }
 
 function addLabels(features){
-labelLayer=L.layerGroup().addTo(map);
-
-features.forEach(f=>{
-let id=idOf(f);
-let name=nameOf(f);
-let bounds=L.geoJSON(f).getBounds();
-
-if(!bounds.isValid())return;
-
-let center=bounds.getCenter();
-let size=bounds.getNorthEast().distanceTo(bounds.getSouthWest());
-
-if(size<35000)return;
-
-let c=countries[id];
-
-let html=
-'<div class="country-label"><b>'+name+
-'</b><span>⚔ '+c.army.toLocaleString('en-US')+
-'</span></div>';
-
-L.marker(center,{
-icon:L.divIcon({
-className:'',
-html,
-iconSize:null,
-iconAnchor:[35,15]
-}),
-interactive:false
-}).addTo(labelLayer);
-});
+ labelLayer=L.layerGroup().addTo(map);
+ features.forEach(f=>{
+  let id=idOf(f),name=nameOf(f);
+  let bounds=L.geoJSON(f).getBounds();
+  if(!bounds.isValid())return;
+  let size=bounds.getNorthEast().distanceTo(bounds.getSouthWest());
+  if(size<35000)return;
+  let c=countries[id];
+  let html='<div class="country-label"><b>'+name+'</b><span>⚔ '+c.army.toLocaleString('en-US')+'</span></div>';
+  L.marker(bounds.getCenter(),{
+   icon:L.divIcon({className:'',html,iconSize:null,iconAnchor:[35,15]}),
+   interactive:false
+  }).addTo(labelLayer);
+ });
 }
 
 function refresh(){
-if(layer)layer.setStyle(countryStyle);
-
-if(labelLayer)map.removeLayer(labelLayer);
-
-if(layer)addLabels(layer.toGeoJSON().features);
+ if(layer)layer.setStyle(countryStyle);
+ if(labelLayer)map.removeLayer(labelLayer);
+ if(layer)addLabels(layer.toGeoJSON().features);
 }
 
-function log(s){
-$('log').innerHTML=s+'<br>'+$('log').innerHTML;
-}
+function log(s){$('log').innerHTML=s+'<br>'+$('log').innerHTML}
 
 function stats(){
-$('gold').textContent=Math.floor(gold).toLocaleString('en-US');
-$('food').textContent=Math.floor(food).toLocaleString('en-US');
-$('army').textContent=army.toLocaleString('en-US');
-$('owned').textContent=owned.size;
+ $('gold').textContent=Math.floor(gold).toLocaleString('en-US');
+ $('food').textContent=Math.floor(food).toLocaleString('en-US');
+ $('army').textContent=army.toLocaleString('en-US');
+ $('owned').textContent=owned.size;
 }
 
 function showCountry(id){
-selectedId=id;
-const c=countries[id];
+ selectedId=id;
+ const c=countries[id];
+ if(!c)return;
 
-if(!c)return;
+ $('selected').textContent=c.name;
+ let status=owned.has(id)?'در قلمرو تو':'کشور مستقل';
 
-$('selected').textContent=c.name;
+ $('info').innerHTML='وضعیت: <b>'+status+'</b>'+
+ '<br>جمعیت فرضی: '+c.population.toLocaleString('en-US')+
+ '<br>نیروی نظامی: ⚔️ '+c.army.toLocaleString('en-US')+
+ '<br>🏙️ شهر: '+c.buildings.city+
+ ' | 🏭 کارخانه: '+c.buildings.factory+
+ '<br>✈️ فرودگاه: '+c.buildings.airport+
+ ' | 🛡️ پست دفاعی: '+c.buildings.outpost+
+ '<br>🪖 پادگان: '+c.buildings.barracks;
 
-let status=owned.has(id)
-?'در قلمرو تو'
-:(id===capitalId?'پایتخت تو':'کشور مستقل');
+ $('choose').disabled=!!capitalId;
+ $('attack').disabled=!capitalId||owned.has(id);
+ $('recruit').disabled=!capitalId;
 
-$('info').innerHTML=
-'وضعیت: <b>'+status+'</b><br>'+
-'جمعیت فرضی: '+c.population.toLocaleString('en-US')+
-'<br>نیروی نظامی: ⚔️ '+
-c.army.toLocaleString('en-US');
-
-$('choose').disabled=!!capitalId;
-$('attack').disabled=!capitalId||owned.has(id)||id===capitalId;
-$('recruit').disabled=!capitalId;
-
-if(layer)layer.setStyle(countryStyle);
+ if(layer)layer.setStyle(countryStyle);
 }
+
+const buildingTypes={
+ city:{name:'شهر',icon:'🏙️',gold:250,food:100},
+ factory:{name:'کارخانه',icon:'🏭',gold:400,food:150},
+ airport:{name:'فرودگاه',icon:'✈️',gold:600,food:250},
+ outpost:{name:'پست دفاعی',icon:'🛡️',gold:300,food:100},
+ barracks:{name:'پادگان',icon:'🪖',gold:350,food:120}
+};
+
+function openBuildMenu(id){
+ const c=countries[id];
+ if(!c)return;
+
+ $('buildCountry').textContent=c.name;
+ $('buildHint').textContent=owned.has(id)
+ ?'این کشور تحت کنترل توست. ساختمان موردنظرت را انتخاب کن.'
+ :'برای ساخت‌وساز، ابتدا باید این کشور را انتخاب کنی یا آن را تصرف کنی.';
+
+ $('buildOptions').innerHTML='';
+
+ Object.entries(buildingTypes).forEach(([key,b])=>{
+  const btn=document.createElement('button');
+  btn.className='buildBtn';
+  btn.innerHTML=`<b>${b.icon} ساخت ${b.name}</b>
+  <small>💰 ${b.gold} طلا | 🌾 ${b.food} غذا</small>
+  <small>ساخته‌شده: ${c.buildings[key]}</small>`;
+
+  btn.disabled=!owned.has(id)||gold<b.gold||food<b.food;
+  btn.onclick=()=>buildOnCountry(id,key);
+  $('buildOptions').appendChild(btn);
+ });
+
+ $('buildMenu').style.display='flex';
+}
+
+function buildOnCountry(id,key){
+ const c=countries[id];
+ const b=buildingTypes[key];
+
+ if(!c||!owned.has(id)||gold<b.gold||food<b.food)return;
+
+ gold-=b.gold;
+ food-=b.food;
+ c.buildings[key]++;
+
+ if(key==='city')c.population+=100000;
+ if(key==='barracks'&&id===capitalId)army+=100;
+
+ log(`${b.icon} یک ${b.name} در ${c.name} ساخته شد.`);
+ stats();
+ showCountry(id);
+ openBuildMenu(id);
+}
+
+$('closeBuild').onclick=()=>{
+ $('buildMenu').style.display='none';
+};
+
+$('buildMenu').addEventListener('click',e=>{
+ if(e.target===$('buildMenu'))$('buildMenu').style.display='none';
+});
 
 fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
 .then(r=>{
-if(!r.ok)throw Error('map');
-return r.json();
+ if(!r.ok)throw Error('map');
+ return r.json();
 })
 .then(t=>{
-const geo=topojson.feature(t,t.objects.countries);
+ const geo=topojson.feature(t,t.objects.countries);
 
-geo.features.forEach(f=>{
-let id=idOf(f);
+ geo.features.forEach(f=>{
+  let id=idOf(f);
+  countries[id]={
+   id,
+   name:nameOf(f),
+   army:initialArmy(id),
+   population:100000+((Number(id)*9187)%90000000),
+   buildings:{city:0,factory:0,airport:0,outpost:0,barracks:0}
+  };
+ });
 
-countries[id]={
-id,
-name:nameOf(f),
-army:initialArmy(id),
-population:100000+((Number(id)*9187)%90000000)
-};
-});
+ layer=L.geoJSON(geo,{
+  style:countryStyle,
+  onEachFeature:(f,l)=>l.on('click',()=>{
+   showCountry(idOf(f));
+   openBuildMenu(idOf(f));
+  })
+ }).addTo(map);
 
-layer=L.geoJSON(geo,{
-style:countryStyle,
-onEachFeature:(f,l)=>
-l.on('click',()=>showCountry(idOf(f)))
-}).addTo(map);
-
-map.fitBounds(layer.getBounds());
-addLabels(geo.features);
+ map.fitBounds(layer.getBounds());
+ addLabels(geo.features);
 })
 .catch(()=>{
-$('info').textContent='نقشه بارگذاری نشد؛ اینترنت را بررسی کن.';
+ $('info').textContent='نقشه بارگذاری نشد؛ اتصال اینترنت را بررسی کن.';
 });
 
 $('choose').onclick=()=>{
-if(!selectedId||capitalId)return;
+ if(!selectedId||capitalId)return;
 
-capitalId=selectedId;
-owned.add(selectedId);
-countries[selectedId].army=army;
+ capitalId=selectedId;
+ owned.add(selectedId);
+ countries[selectedId].army=army;
 
-log('🏰 '+countries[selectedId].name+' پایتخت تو شد.');
-
-showCountry(selectedId);
-stats();
-refresh();
+ log('🏰 '+countries[selectedId].name+' پایتخت تو شد.');
+ showCountry(selectedId);
+ stats();
+ refresh();
 };
 
 $('attack').onclick=()=>{
-if(!selectedId||gold<150||army<100)return;
+ if(!selectedId||gold<150||army<100)return;
 
-const target=countries[selectedId];
-const defenders=target.army;
+ const target=countries[selectedId];
+ const defenders=target.army+(target.buildings.outpost||0)*800;
+ const committed=Math.min(army-50,Math.max(100,Math.floor(army*.65)));
 
-const committed=Math.min(
-army-50,
-Math.max(100,Math.floor(army*.65))
-);
+ if(committed<=0){
+  log('سرباز کافی برای حمله نداری.');
+  return;
+ }
 
-if(committed<=0){
-log('سرباز کافی برای حمله نداری.');
-return;
-}
+ gold-=150;
+ army-=committed;
 
-gold-=150;
-army-=committed;
+ if(committed>defenders){
+  const survivors=Math.max(20,committed-Math.floor(defenders*.65));
+  target.army=0;
+  owned.add(selectedId);
+  army+=survivors;
+  log('🏆 پیروزی! '+target.name+' تصرف شد.');
+ }else{
+  target.army=Math.max(0,defenders-Math.floor(committed*.65));
+  log('🛡️ حمله به '+target.name+' شکست خورد.');
+ }
 
-if(committed>defenders){
-
-const survivors=Math.max(
-20,
-committed-Math.floor(defenders*.65)
-);
-
-target.army=0;
-owned.add(selectedId);
-army+=survivors;
-
-log('🏆 پیروزی! '+target.name+' تصرف شد.');
-
-}else{
-
-target.army=Math.max(
-0,
-defenders-Math.floor(committed*.65)
-);
-
-log('🛡️ حمله به '+target.name+' شکست خورد.');
-}
-
-showCountry(selectedId);
-stats();
-refresh();
+ showCountry(selectedId);
+ stats();
+ refresh();
 };
 
 $('recruit').onclick=()=>{
-if(gold<120||food<50){
-log('برای جذب نیرو طلا یا غذای کافی نداری.');
-return;
-}
+ if(gold<120||food<50){
+  log('برای جذب نیرو طلا یا غذای کافی نداری.');
+  return;
+ }
 
-gold-=120;
-food-=50;
-army+=50;
+ gold-=120;
+ food-=50;
+ army+=50;
 
-if(capitalId){
-countries[capitalId].army=army;
-}
+ if(capitalId) countries[capitalId].army=army;
 
-log('➕ ۵۰ سرباز به ارتش تو اضافه شدند.');
-
-stats();
-refresh();
+ log('➕ ۵۰ سرباز به ارتش تو اضافه شدند.');
+ stats();
+ refresh();
 };
 
 $('pause').onclick=()=>{
-paused=!paused;
-
-$('pause').textContent=
-paused?'▶️ ادامه زمان':'⏸ توقف زمان';
+ paused=!paused;
+ $('pause').textContent=paused?'▶️ ادامه زمان':'⏸ توقف زمان';
 };
 
 $('reset').onclick=()=>{
-capitalId=null;
-selectedId=null;
-owned.clear();
+ capitalId=null;
+ selectedId=null;
+ owned.clear();
+ gold=1000;
+ food=700;
+ army=250;
 
-gold=1000;
-food=700;
-army=250;
+ Object.keys(countries).forEach(id=>{
+  countries[id].army=initialArmy(id);
+  countries[id].buildings={
+   city:0,factory:0,airport:0,outpost:0,barracks:0
+  };
+ });
 
-Object.keys(countries).forEach(id=>{
-countries[id].army=initialArmy(id);
-});
+ $('selected').textContent='کشوری انتخاب نشده';
+ $('info').textContent='روی یک کشور در نقشه بزن تا اطلاعات و ارتش آن را ببینی.';
+ $('choose').disabled=false;
+ $('attack').disabled=true;
+ $('recruit').disabled=true;
 
-$('selected').textContent='کشوری انتخاب نشده';
-$('info').textContent='روی یک کشور در نقشه بزن.';
-$('choose').disabled=false;
-$('attack').disabled=true;
-$('recruit').disabled=true;
-
-stats();
-refresh();
-log('بازی از نو آغاز شد.');
+ stats();
+ refresh();
+ log('بازی از نو آغاز شد.');
 };
 
 setInterval(()=>{
-if(paused||!capitalId)return;
+ if(paused||!capitalId)return;
 
-gold+=8+owned.size*5;
-food+=5+owned.size*3;
-army+=owned.size>0?1:0;
+ let goldBonus=0,armyBonus=0;
 
-if(countries[capitalId]){
-countries[capitalId].army=army;
-}
+ owned.forEach(id=>{
+  const b=countries[id].buildings;
+  goldBonus+=(b.city||0)*3+(b.factory||0)*8+(b.airport||0)*4;
+  armyBonus+=(b.barracks||0)*0.2;
+ });
 
-Object.keys(countries).forEach(id=>{
-if(!owned.has(id)&&Math.random()<0.015){
-countries[id].army+=25;
-}
-});
+ gold+=8+owned.size*5+goldBonus;
+ food+=5+owned.size*3;
+ army+=owned.size>0?1+armyBonus:0;
 
-stats();
+ if(countries[capitalId])countries[capitalId].army=army;
 
-if(layer)layer.setStyle(countryStyle);
+ Object.keys(countries).forEach(id=>{
+  if(!owned.has(id)&&Math.random()<0.015){
+   countries[id].army+=25;
+  }
+ });
 
+ stats();
+ if(layer)layer.setStyle(countryStyle);
 },1000);
 
 stats();

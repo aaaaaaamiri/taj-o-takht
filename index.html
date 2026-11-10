@@ -1,116 +1,239 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تاج و تخت</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تاج و تخت ۲</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-body{margin:0;background:#101827;color:white;font-family:Tahoma}
-header{padding:15px;background:#192538;color:#e8b84d;text-align:center}
-h2{margin:5px}
-#map{height:65vh;width:100%;background:#ddd}
-.panel{padding:15px;text-align:center}
-button{background:#b88725;color:white;border:0;border-radius:9px;padding:13px;margin:5px;font-size:15px}
-.info{color:#e8b84d;font-size:18px}
+*{box-sizing:border-box}
+body{margin:0;background:#0c1422;color:#fff;font-family:Tahoma}
+header{padding:12px;color:#e6b64d;background:#111d30}
+#map{height:52vh;min-height:290px;background:#b9ced9}
+.stats{display:flex;gap:5px;overflow:auto;padding:8px}
+.stat,.panel{background:#172438;border:1px solid #34465f;border-radius:9px;padding:9px}
+.stat{min-width:72px;text-align:center}
+.stat b{display:block;color:#e6b64d}
+.panel{margin:8px;padding:12px}
+button{padding:11px;border:0;border-radius:8px;background:#a9791d;color:white;margin:4px;width:48%;font-size:14px}
+button:disabled{opacity:.4}
+.muted{color:#adbbce;font-size:12px}
+#log{font-size:12px;line-height:1.8;max-height:80px;overflow:auto}
 </style>
 </head>
 <body>
+
 <header>
 <h2>👑 تاج و تخت</h2>
-THRONE & CROWN
+<small>THRONE & CROWN · نسخه ۲ آزمایشی</small>
 </header>
-<div id="map"></div>
-<div class="panel">
-<div class="info" id="country">کشوری انتخاب نشده</div>
-<p>💰 طلا: <span id="gold">500</span></p>
-<p>⚔️ ارتش: <span id="army">100</span></p>
-<button onclick="choose()">انتخاب کشور من</button>
-<button onclick="attack()">⚔️ تصرف کشور</button>
-<p id="message">روی نقشه یک کشور انتخاب کن.</p>
+
+<div class="stats">
+<div class="stat">💰 طلا<b id="gold">800</b></div>
+<div class="stat">🌾 غذا<b id="food">500</b></div>
+<div class="stat">⚔️ ارتش<b id="army">150</b></div>
+<div class="stat">🏰 کشورها<b id="owned">0</b></div>
 </div>
+
+<div id="map"></div>
+
+<section class="panel">
+<h3>فرماندهی</h3>
+<b id="selected">کشوری انتخاب نشده</b>
+<p class="muted" id="info">روی کشور دلخواهت در نقشه بزن.</p>
+
+<button id="choose">انتخاب کشور من</button>
+<button id="attack" disabled>⚔️ تصرف کشور</button>
+<button id="recruit" disabled>➕ جذب ۵۰ نیرو</button>
+<button id="pause">⏸ توقف زمان</button>
+<button id="reset">شروع دوباره</button>
+
+<h3>گزارش رویدادها</h3>
+<div id="log">به تاج و تخت خوش آمدی!</div>
+
+<p class="muted">
+این نسخه آزمایشی است؛ همسایگی کشورها، دیپلماسی و چندنفره هنوز ساخته نشده‌اند.
+</p>
+</section>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3"></script>
+
 <script>
-const map=L.map('map').setView([25,10],2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-attribution:'© OpenStreetMap'
-}).addTo(map);
+const $=x=>document.getElementById(x);
 
-let selected='';
-let capital='';
-let gold=500;
-let army=100;
-let owned=[];
+const map=L.map('map',{
+preferCanvas:true,
+minZoom:1,
+maxZoom:7
+}).setView([20,5],2);
 
-let layer;
+const renderer=L.canvas({padding:.5});
 
-fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
-.then(r=>r.json())
-.then(data=>{
-layer=L.geoJSON(data,{
-style:f=>({
-color:'#34495e',
-weight:1,
-fillColor:owned.includes(f.properties.ADMIN)?'#d6a43a':'#5d91b5',
-fillOpacity:.8
-}),
-onEachFeature:(f,l)=>{
-let name=f.properties.ADMIN;
-l.bindTooltip(name);
-l.on('click',()=>{
-selected=name;
-document.getElementById('country').textContent=name;
-document.getElementById('message').textContent='کشور انتخاب شد!';
-});
+let layer,sel='',capital='',owned=new Set();
+let gold=800,food=500,army=150,paused=false;
+
+const names={
+'364':'ایران',
+'276':'آلمان',
+'840':'آمریکا',
+'643':'روسیه',
+'156':'چین',
+'792':'ترکیه',
+'368':'عراق',
+'004':'افغانستان',
+'356':'هند',
+'250':'فرانسه',
+'826':'بریتانیا',
+'392':'ژاپن',
+'124':'کانادا',
+'076':'برزیل',
+'036':'استرالیا',
+'682':'عربستان',
+'586':'پاکستان',
+'710':'آفریقای جنوبی',
+'380':'ایتالیا',
+'724':'اسپانیا'
+};
+
+function nm(f){
+let id=String(f.id).padStart(3,'0');
+return names[id]||'کشور '+id;
 }
+
+function sty(f){
+return{
+renderer,
+color:'#43566d',
+weight:.7,
+fillColor:owned.has(nm(f))?'#d9a63e':'#5e91ad',
+fillOpacity:.88
+};
+}
+
+function log(s){
+$('log').innerHTML=s+'<br>'+$('log').innerHTML;
+}
+
+function stats(){
+$('gold').textContent=Math.floor(gold);
+$('food').textContent=Math.floor(food);
+$('army').textContent=army;
+$('owned').textContent=owned.size;
+}
+
+function refresh(){
+if(layer)layer.setStyle(sty);
+}
+
+function select(n){
+sel=n;
+$('selected').textContent=n;
+$('info').textContent=owned.has(n)
+?'این کشور در قلمرو توست.'
+:n===capital?'پایتخت توست.':'کشور مستقل است.';
+
+$('choose').disabled=!!capital;
+$('attack').disabled=!capital||n===capital||owned.has(n);
+$('recruit').disabled=!capital;
+
+refresh();
+}
+
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+.then(r=>r.json())
+.then(t=>{
+let g=topojson.feature(t,t.objects.countries);
+
+layer=L.geoJSON(g,{
+renderer,
+style:sty,
+onEachFeature:(f,l)=>l.on('click',()=>select(nm(f)))
 }).addTo(map);
+
 map.fitBounds(layer.getBounds());
 })
-.catch(()=>document.getElementById('message').textContent='نقشه بارگذاری نشد. اینترنت را بررسی کن.');
+.catch(()=>$('info').textContent='نقشه بارگذاری نشد؛ اینترنت را بررسی کن.');
 
-function choose(){
-if(!selected||capital)return;
-capital=selected;
-owned.push(selected);
-document.getElementById('message').textContent='کشور اصلی تو انتخاب شد!';
-layer.setStyle(f=>({
-color:'#34495e',weight:1,
-fillColor:owned.includes(f.properties.ADMIN)?'#d6a43a':'#5d91b5',
-fillOpacity:.8
-}));
-}
+$('choose').onclick=()=>{
+if(!sel||capital)return;
 
-function attack(){
-if(!selected||!capital||selected===capital||owned.includes(selected)){
-document.getElementById('message').textContent='یک کشور مستقل انتخاب کن!';
-return;
-}
-if(gold<100||army<30){
-document.getElementById('message').textContent='منابع کافی نداری!';
-return;
-}
+capital=sel;
+owned.add(sel);
+
+log('🏰 '+sel+' پایتخت تو شد.');
+
+select(sel);
+stats();
+};
+
+$('attack').onclick=()=>{
+if(gold<100||army<30)return;
+
 gold-=100;
 army-=30;
-owned.push(selected);
-document.getElementById('gold').textContent=gold;
-document.getElementById('army').textContent=army;
-document.getElementById('message').textContent='کشور تصرف شد! 👑';
-layer.setStyle(f=>({
-color:'#34495e',weight:1,
-fillColor:owned.includes(f.properties.ADMIN)?'#d6a43a':'#5d91b5',
-fillOpacity:.8
-}));
+owned.add(sel);
+
+log('⚔️ '+sel+' تصرف شد!');
+
+select(sel);
+stats();
+};
+
+$('recruit').onclick=()=>{
+if(gold<120||food<30){
+log('منابع کافی نیست.');
+return;
 }
 
+gold-=120;
+food-=30;
+army+=50;
+
+log('۵۰ سرباز جدید جذب شدند.');
+stats();
+};
+
+$('pause').onclick=()=>{
+paused=!paused;
+$('pause').textContent=paused
+?'▶️ ادامه زمان'
+:'⏸ توقف زمان';
+};
+
+$('reset').onclick=()=>{
+capital='';
+sel='';
+owned.clear();
+
+gold=800;
+food=500;
+army=150;
+
+$('selected').textContent='کشوری انتخاب نشده';
+$('info').textContent='روی کشور دلخواهت در نقشه بزن.';
+
+$('choose').disabled=false;
+$('attack').disabled=true;
+$('recruit').disabled=true;
+
+refresh();
+stats();
+log('بازی از نو آغاز شد.');
+};
+
 setInterval(()=>{
-if(capital){
-gold+=5;
-army++;
-document.getElementById('gold').textContent=gold;
-document.getElementById('army').textContent=army;
+if(!paused&&capital){
+gold+=8+owned.size*3;
+food+=4+owned.size*2;
+army+=owned.size?1:0;
+stats();
 }
 },1000);
+
+stats();
 </script>
 </body>
 </html>
+

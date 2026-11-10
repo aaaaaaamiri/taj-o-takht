@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تاج و تخت</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+body{margin:0;background:#101827;color:white;font-family:Tahoma}
+header{padding:15px;background:#192538;color:#e8b84d;text-align:center}
+h2{margin:5px}
+#map{height:65vh;width:100%;background:#ddd}
+.panel{padding:15px;text-align:center}
+button{background:#b88725;color:white;border:0;border-radius:9px;padding:13px;margin:5px;font-size:15px}
+.info{color:#e8b84d;font-size:18px}
+</style>
+</head>
+<body>
+<header>
+<h2>👑 تاج و تخت</h2>
+THRONE & CROWN
+</header>
+<div id="map"></div>
+<div class="panel">
+<div class="info" id="country">کشوری انتخاب نشده</div>
+<p>💰 طلا: <span id="gold">500</span></p>
+<p>⚔️ ارتش: <span id="army">100</span></p>
+<button onclick="choose()">انتخاب کشور من</button>
+<button onclick="attack()">⚔️ تصرف کشور</button>
+<p id="message">روی نقشه یک کشور انتخاب کن.</p>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map=L.map('map').setView([25,10],2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
+let selected='';
+let capital='';
+let gold=500;
+let army=100;
+let owned=[];
+
+let layer;
+
+fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+.then(r=>r.json())
+.then(data=>{
+layer=L.geoJSON(data,{
+style:f=>({
+color:'#34495e',
+weight:1,
+fillColor:owned.includes(f.properties.ADMIN)?'#d6a43a':'#5d91b5',
+fillOpacity:.8
+}),
+onEachFeature:(f,l)=>{
+let name=f.properties.ADMIN;
+l.bindTooltip(name);
+l.on('click',()=>{
+selected=name;
+document.getElementById('country').textContent=name;
+document.getElementById('message').textContent='کشور انتخاب شد!';
+});
+}
+}).addTo(map);
+map.fitBounds(layer.getBounds());
+})
+.catch(()=>document.getElementById('message').textContent='نقشه بارگذاری نشد. اینترنت را بررسی کن.');
+
+function choose(){
+if(!selected||capital)return;
+capital=selected;
+owned.push(selected);
+document.getElementById('message').textContent='کشور اصلی تو انتخاب شد!';
+layer.setStyle(f=>({
+color:'#34495e',weight:1,
+fillColor:owned.includes(f.properties.ADMIN)?'#d6a43a':'#5d91b5',
+fillOpacity:.8
+}));
+}
+
+function attack(){
+if(!selected||!capital||selected===capital||owned.includes(selected)){
+document.getElementById('message').textContent='یک کشور مستقل انتخاب کن!';
+return;
+}
+if(gold<100||army<30){
+document.getElementById('message').textContent='منابع کافی نداری!';
+return;
+}
+gold-=100;
+army-=30;
+owned.push(selected);
+document.getElementById('gold').textContent=gold;
+document.getElementById('army').textContent=army;
+document.getElementById('message').textContent='کشور تصرف شد! 👑';
+layer.setStyle(f=>({
+color:'#34495e',weight:1,
+fillColor:owned.includes(f.properties.ADMIN)?'#d6a43a':'#5d91b5',
+fillOpacity:.8
+}));
+}
+
+setInterval(()=>{
+if(capital){
+gold+=5;
+army++;
+document.getElementById('gold').textContent=gold;
+document.getElementById('army').textContent=army;
+}
+},1000);
+</script>
+</body>
+</html>

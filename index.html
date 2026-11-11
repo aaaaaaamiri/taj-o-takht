@@ -3,294 +3,242 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>تاج و تخت</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101923;color:#edf2f7;font-family:Tahoma,Arial}
-header{padding:14px;background:#172432;border-bottom:1px solid #405164}
-.brand{font-size:23px;color:#e7bd62;font-weight:bold}
-.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.stat,.panel{background:#202f3e;border:1px solid #405164;border-radius:9px;padding:9px}
-.stat b{color:#f1c66d}
-main{display:grid;grid-template-columns:210px 1fr 230px;gap:10px;padding:10px;max-width:1400px;margin:auto}
-.panel{padding:0;overflow:hidden}
-.panel h3{margin:0;padding:12px;color:#e7bd62;border-bottom:1px solid #405164;font-size:14px}
-.inside{padding:10px}
-.mapbox{background:#173447;border:1px solid #486174;border-radius:10px;overflow:hidden}
-svg{width:100%;height:auto;display:block}
-.land{stroke:#8ca0af;stroke-width:2;cursor:pointer}
-.land:hover{stroke:white;stroke-width:4}
-.sel{stroke:#fff1a8;stroke-width:5}
-.label{fill:white;font:bold 11px Tahoma;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#182531;stroke-width:3px}
-.army{fill:#ffda8a;font:10px Tahoma;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#182531;stroke-width:3px}
-.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:9px;background:#172432}
-button{padding:11px 5px;border:1px solid #64798d;border-radius:8px;background:#2d4357;color:white;font:12px Tahoma;cursor:pointer}
-button:disabled{opacity:.35}
-.primary{background:#80602c}
-.rank{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid #354657;font-size:12px}
-.detail{line-height:2;font-size:12px}
-.gold{color:#e7bd62}
-.log{font-size:11px;line-height:1.8;max-height:170px;overflow:auto}
-.log div{border-bottom:1px solid #354657;padding:4px}
-footer{text-align:center;color:#8293a3;font-size:10px;padding:15px}
-@media(max-width:850px){
-main{grid-template-columns:1fr}
+body{margin:0;background:#071522;color:#fff;font-family:Tahoma,Arial;overflow:hidden}
+button{font-family:inherit;cursor:pointer;color:white;background:#243648;border:1px solid #52677c;border-radius:7px;padding:8px}
+button:hover{background:#3b5269}
+#game{height:100dvh;width:100vw;position:relative;overflow:hidden}
+#mapArea{position:absolute;inset:0;background:#07364c;overflow:hidden;touch-action:none}
+#map{width:100%;height:100%;transform-origin:center;cursor:grab}
+#map:active{cursor:grabbing}
+.sea{fill:#07516c}
+.land{stroke:#d5d4aa;stroke-width:2;cursor:pointer;transition:.15s}
+.land:hover{stroke:#fff;stroke-width:4;filter:brightness(1.15)}
+.selected{stroke:#fff4a4;stroke-width:5;filter:brightness(1.2)}
+.countryName{fill:white;font:bold 19px Tahoma;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#182c35;stroke-width:4px}
+.unit{font-size:24px;text-anchor:middle;cursor:pointer}
+.unitText{fill:white;font:bold 11px Tahoma;text-anchor:middle;paint-order:stroke;stroke:#15232d;stroke-width:3px}
+.waterText{fill:#77d7ed;font:bold 25px Tahoma;text-anchor:middle;opacity:.8}
+#topbar{position:absolute;top:0;left:0;right:0;min-height:54px;background:#101820ed;border-bottom:1px solid #526171;display:flex;align-items:center;justify-content:space-around;gap:7px;padding:7px;z-index:5;flex-wrap:wrap}
+.stat{font-size:12px;white-space:nowrap}.stat b{color:#f5c65c}
+#rank{position:absolute;top:75px;left:10px;width:180px;background:#111d29eF;border:1px solid #506174;border-radius:9px;padding:10px;z-index:4}
+#rank h3,#leader h3{margin:0 0 10px;color:#f1c36a;font-size:14px}
+.rankrow{font-size:11px;padding:7px 0;border-bottom:1px solid #354454;display:flex;justify-content:space-between}
+#leader{position:absolute;top:75px;right:10px;width:190px;background:#111d29ef;border:1px solid #506174;border-radius:9px;padding:10px;z-index:4}
+.portrait{height:125px;border-radius:7px;background:linear-gradient(145deg,#66502c,#172535 65%);display:grid;place-items:center;font-size:65px;margin-bottom:8px;border:1px solid #8e7446}
+.info{font-size:11px;line-height:2}
+#bottom{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;background:#111d29ed;border:1px solid #526174;padding:7px;border-radius:10px;z-index:5;max-width:96vw;overflow-x:auto}
+.action{min-width:65px;text-align:center;font-size:11px}
+.action span{display:block;font-size:25px;margin-bottom:4px}
+#minimap{position:absolute;bottom:105px;left:10px;width:155px;height:95px;background:#102b3b;border:2px solid #657789;border-radius:7px;z-index:3}
+#notice{position:absolute;bottom:105px;right:10px;width:210px;max-height:115px;overflow:auto;background:#111d29ed;border:1px solid #526174;border-radius:8px;padding:9px;font-size:10px;line-height:1.9;z-index:3}
+#controls{position:absolute;right:10px;bottom:235px;display:grid;gap:5px;z-index:4}
+#controls button{width:37px;height:37px;font-size:17px;padding:0}
+#turnBox{position:absolute;top:75px;left:50%;transform:translateX(-50%);background:#111d29ed;border:1px solid #526174;border-radius:8px;padding:8px 13px;z-index:3;font-size:12px;white-space:nowrap}
+@media(max-width:650px){
+#rank{width:125px;top:112px;left:5px;padding:7px}
+#leader{width:125px;top:112px;right:5px;padding:7px}
+.portrait{height:80px;font-size:45px}
+.rankrow{font-size:9px}
+#topbar{justify-content:center}
+#turnBox{top:175px}
+#notice{width:145px;bottom:105px;font-size:9px}
+#minimap{width:115px;height:75px}
+#bottom{bottom:5px}
+.action{min-width:54px;font-size:10px}
 }
 </style>
 </head>
 <body>
-
-<header>
-<div class="brand">♛ تاج و تخت</div>
-<small>جهان خیالی آریون</small>
-<div class="stats">
-<div class="stat">🪙 خزانه <b id="gold">۱۲۰۰</b></div>
-<div class="stat">👥 جمعیت <b id="pop">۸۴۰۰۰</b></div>
-<div class="stat">⚔ ارتش <b id="army">۸۵۰</b></div>
-<div class="stat">📈 درآمد <b id="income">+۸۵</b></div>
-<div class="stat">⏱ دور <b id="turn">۱</b></div>
-</div>
-</header>
-
-<main>
-
-<aside class="panel">
-<h3>🏆 قدرت‌های برتر</h3>
-<div class="inside" id="ranking"></div>
-<h3>📜 گزارش‌های جهان</h3>
-<div class="inside log" id="log"></div>
-</aside>
-
-<section>
-<div class="mapbox">
-<svg viewBox="0 0 900 570">
-<rect width="900" height="570" fill="#173447"/>
-<text x="450" y="290" fill="#79a2b7" text-anchor="middle">دریای میانی</text>
-<g id="territories"></g>
+<div id="game">
+<div id="mapArea">
+<svg id="map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet">
+<rect width="1200" height="800" class="sea"/>
+<path d="M0 0H1200V800H0Z" fill="#06425b"/>
+<g id="countries">
+<!-- ساحل شمالی -->
+<path id="c0" class="land selected" fill="#397f50" d="M0 0H1200V150L1100 170 1020 145 940 180 850 155 760 195 680 160 590 205 500 170 420 210 330 175 240 220 150 190 70 230 0 210Z"/>
+<path id="c1" class="land" fill="#a34d4d" d="M0 210L70 230 150 190 240 220 330 175 420 210 500 170 590 205 680 160 760 195 850 155 940 180 1020 145 1100 170 1200 150V310L1100 330 1000 300 900 345 800 310 700 355 600 315 500 360 400 325 300 365 200 325 100 365 0 330Z"/>
+<!-- ساحل جنوبی -->
+<path id="c2" class="land" fill="#9b773a" d="M0 490L100 460 200 485 300 445 400 480 500 440 600 475 700 435 800 470 900 430 1000 465 1100 420 1200 450V800H0Z"/>
+<path id="c3" class="land" fill="#71509a" d="M0 330L100 365 200 325 300 365 400 325 500 360 600 315 700 355 800 310 900 345 1000 300 1100 330 1200 310V450L1100 420 1000 465 900 430 800 470 700 435 600 475 500 440 400 480 300 445 200 485 100 460 0 490Z"/>
+<!-- جزایر -->
+<path class="land" fill="#c09a53" d="M450 405l40 -12 25 18 -18 25 -42 -4Z"/>
+<path class="land" fill="#c09a53" d="M680 395l32 -10 20 15 -17 22 -35 -5Z"/>
+<path class="land" fill="#c09a53" d="M850 380l30 -8 18 15 -16 19 -29 -5Z"/>
+</g>
+<g>
+<text x="350" y="90" class="countryName">آریانا</text>
+<text x="900" y="95" class="countryName">پارس</text>
+<text x="300" y="670" class="countryName">خلیج</text>
+<text x="900" y="670" class="countryName">زارون</text>
+<text x="600" y="395" class="waterText">تنگه هرمز</text>
+<text x="200" y="400" class="waterText" style="font-size:14px">خلیج فارس</text>
+<text x="1010" y="400" class="waterText" style="font-size:14px">دریای عمان</text>
+</g>
+<g id="units">
+<text x="300" y="145" class="unit">🪖</text>
+<text x="340" y="180" class="unit">🪖</text>
+<text x="420" y="130" class="unit">🛡️</text>
+<text x="800" y="115" class="unit">🪖</text>
+<text x="880" y="155" class="unit">🪖</text>
+<text x="500" y="260" class="unit">🛩️</text>
+<text x="720" y="240" class="unit">✈️</text>
+<text x="350" y="540" class="unit">🛡️</text>
+<text x="750" y="550" class="unit">🪖</text>
+<text x="580" y="450" class="unit">🚢</text>
+<text x="680" y="480" class="unit">🚢</text>
+<text x="850" y="450" class="unit">🚢</text>
+<text x="300" y="165" class="unitText">۸۵۰</text>
+<text x="800" y="135" class="unitText">۶۲۰</text>
+</g>
 </svg>
 </div>
 
-<div class="actions">
-<button class="primary" id="attack">⚔️ حمله</button>
-<button id="recruit">🛡️ سربازگیری</button>
-<button id="fort">🏰 ساخت دژ</button>
-<button id="end">⏭️ پایان دور</button>
+<div id="topbar">
+<div class="stat">🪙 طلا: <b id="gold">۱۲۰۰</b></div>
+<div class="stat">👥 جمعیت: <b id="population">۸۴۰۰۰</b></div>
+<div class="stat">🪖 سرباز: <b id="army">۸۵۰</b></div>
+<div class="stat">🌾 غذا: <b id="food">۹۰۰</b></div>
+<div class="stat">📈 درآمد: <b>+۸۵</b></div>
 </div>
-</section>
 
-<aside class="panel">
-<h3>🗺️ اطلاعات سرزمین</h3>
-<div class="inside detail" id="details">یک سرزمین را انتخاب کن.</div>
-<h3>🎯 کشور من</h3>
-<div class="inside detail" id="mine"></div>
-</aside>
+<div id="turnBox">دور <b id="turn">۱</b> · <button onclick="nextTurn()">⏭ دور بعد</button></div>
 
-</main>
+<div id="rank">
+<h3>🏆 قدرت‌های برتر</h3>
+<div class="rankrow"><span>۱. آریانا 👑</span><b>۸۵۰</b></div>
+<div class="rankrow"><span>۲. پارس</span><b>۶۲۰</b></div>
+<div class="rankrow"><span>۳. زارون</span><b>۵۴۰</b></div>
+<div class="rankrow"><span>۴. خلیج</span><b>۴۸۰</b></div>
+<div class="rankrow"><span>۵. نهال</span><b>۳۹۰</b></div>
+</div>
 
-<footer>تاج و تخت | نسخه ۰.۱</footer>
+<div id="leader">
+<h3>👑 رهبر کشور</h3>
+<div class="portrait">👨🏻‍✈️</div>
+<div class="info">
+<b>شاه آرمان</b><br>
+کشور: آریانا<br>
+سن: ۴۲ سال<br>
+قدرت: ۸۵۰<br>
+وضعیت: فرمانروا
+</div>
+</div>
+
+<div id="controls">
+<button onclick="zoom(1.2)">＋</button>
+<button onclick="zoom(.8)">－</button>
+<button onclick="resetZoom()">⌖</button>
+</div>
+
+<div id="minimap">
+<svg viewBox="0 0 300 160" width="100%" height="100%">
+<rect width="300" height="160" fill="#07516c"/>
+<path d="M0 0H300V40L250 50 200 35 150 55 100 40 50 60 0 50Z" fill="#397f50"/>
+<path d="M0 100L50 90 100 110 150 90 200 110 250 85 300 100V160H0Z" fill="#9b773a"/>
+<rect x="90" y="50" width="120" height="60" fill="none" stroke="white" stroke-width="3"/>
+</svg>
+</div>
+
+<div id="notice">📜 گزارش‌ها<br>فرمانروایی آریانا آغاز شد.</div>
+
+<div id="bottom">
+<button class="action" onclick="attack()"> <span>⚔️</span>حمله</button>
+<button class="action" onclick="recruit()"> <span>🪖</span>سربازگیری</button>
+<button class="action" onclick="buyUnit('tank')"> <span>🛡️</span>تانک</button>
+<button class="action" onclick="buyUnit('plane')"> <span>✈️</span>جنگنده</button>
+<button class="action" onclick="buyUnit('ship')"> <span>🚢</span>ناو</button>
+<button class="action" onclick="build()"> <span>🏰</span>ساخت دژ</button>
+<button class="action" onclick="diplomacy()"> <span>🤝</span>دیپلماسی</button>
+</div>
+</div>
 
 <script>
-const names=[
-"آریانا","والور","زارون","نهال","الدور",
-"مارون","تارگوس","سرین","کالدار","وسترا",
-"ارمان","دالیا","رهام","نکسار","آستور",
-"برکان","لوریان","ساهل","وردان","کایروس",
-"مهران","الترا","نارون","فرهاد","سولان",
-"دمورا","آوستا","رادمان","تیرا","گالن"
-];
-
-const positions=[
-[90,80],[205,62],[320,88],[430,60],[550,88],
-[675,72],[790,110],[55,205],[175,190],[290,210],
-[410,185],[535,205],[655,190],[790,225],[100,340],
-[220,325],[340,350],[455,325],[570,350],[700,330],
-[820,365],[65,470],[190,465],[310,485],[435,465],
-[555,485],[675,465],[800,490],[385,115],[520,120]
-];
-
-const colors=[
-"#a34d4d","#477b9b","#98713d","#63865a",
-"#8064a4","#b06c87","#4f8a83","#a28b4c"
-];
-
-let states=names.map((name,i)=>({
-name,
-x:positions[i][0],
-y:positions[i][1],
-army:i===0?850:300+(i*173)%900,
-pop:12000+(i*3901)%25000,
-owner:i===0,
-fort:0,
-color:i===0?"#bd8a3f":colors[i%8]
-}));
-
+let gold=1200,army=850,food=900,turn=1,zoomLevel=1;
 let selected=0;
-let gold=1200;
-let turn=1;
+const countries=[
+{name:"آریانا",army:850,owner:true},
+{name:"پارس",army:620,owner:false},
+{name:"زارون",army:540,owner:false},
+{name:"خلیج",army:480,owner:false}
+];
 
-const ns="http://www.w3.org/2000/svg";
-
-function shape(c,i){
-let points=[];
-for(let k=0;k<8;k++){
-let angle=k*Math.PI/4+i*.17;
-let r=43+(i*13+k*17)%19;
-points.push(
-(c.x+Math.cos(angle)*r)+","+
-(c.y+Math.sin(angle)*r*.72)
-);
-}
-return points.join(" ");
+function report(text){
+document.getElementById("notice").innerHTML+=
+"<br>• "+text;
 }
 
-function fmt(n){
-return n.toLocaleString("fa-IR");
+function update(){
+document.getElementById("gold").textContent=gold.toLocaleString("fa-IR");
+document.getElementById("army").textContent=army.toLocaleString("fa-IR");
+document.getElementById("food").textContent=food.toLocaleString("fa-IR");
+document.getElementById("turn").textContent=turn.toLocaleString("fa-IR");
+document.getElementById("population").textContent=(84000+turn*250).toLocaleString("fa-IR");
 }
 
-function log(message){
-let d=document.createElement("div");
-d.textContent="دور "+fmt(turn)+": "+message;
-document.querySelector("#log").prepend(d);
+function recruit(){
+if(gold<150){report("طلا برای سربازگیری کافی نیست.");return;}
+gold-=150;army+=120;countries[0].army=army;
+report("۱۲۰ سرباز جدید جذب شدند.");update();
 }
 
-function draw(){
-let g=document.querySelector("#territories");
-g.innerHTML="";
-
-states.forEach((c,i)=>{
-let p=document.createElementNS(ns,"polygon");
-p.setAttribute("points",shape(c,i));
-p.setAttribute("fill",c.owner?"#bd8a3f":c.color);
-p.setAttribute("class","land"+(i===selected?" sel":""));
-p.onclick=()=>{
-selected=i;
-draw();
-};
-g.append(p);
-
-let t=document.createElementNS(ns,"text");
-t.setAttribute("x",c.x);
-t.setAttribute("y",c.y-2);
-t.setAttribute("class","label");
-t.textContent=c.name;
-g.append(t);
-
-let a=document.createElementNS(ns,"text");
-a.setAttribute("x",c.x);
-a.setAttribute("y",c.y+14);
-a.setAttribute("class","army");
-a.textContent="⚔ "+fmt(c.army);
-g.append(a);
-});
-
-let c=states[selected];
-let own=states.filter(x=>x.owner);
-let total=own.reduce((s,x)=>s+x.army,0);
-
-document.querySelector("#details").innerHTML=
-'<b class="gold">'+c.name+'</b>'+
-(c.owner?' 👑 سرزمین شما':' · مستقل')+
-'<br>جمعیت: '+fmt(c.pop)+
-'<br>ارتش: '+fmt(c.army)+
-'<br>دژ دفاعی: '+fmt(c.fort);
-
-document.querySelector("#mine").innerHTML=
-'کشور اصلی: <b class="gold">آریانا</b>'+
-'<br>سرزمین‌های تحت کنترل: '+fmt(own.length)+'/۳۰'+
-'<br>درآمد هر دور: +'+fmt(own.length*85);
-
-document.querySelector("#ranking").innerHTML=
-[...states].sort((a,b)=>b.army-a.army)
-.slice(0,7).map((c,i)=>
-'<div class="rank"><span>'+fmt(i+1)+
-'. '+c.name+(c.owner?' 👑':'')+
-'</span><span>'+fmt(c.army)+' ⚔</span></div>'
-).join("");
-
-document.querySelector("#gold").textContent=fmt(gold);
-document.querySelector("#pop").textContent=
-fmt(own.reduce((s,x)=>s+x.pop,0));
-document.querySelector("#army").textContent=fmt(total);
-document.querySelector("#income").textContent="+"+fmt(own.length*85);
-document.querySelector("#turn").textContent=fmt(turn);
-
-document.querySelector("#attack").disabled=
-c.owner||total<=c.army;
+function buyUnit(type){
+let price={tank:350,plane:500,ship:650};
+let title={tank:"تانک",plane:"جنگنده",ship:"ناو جنگی"};
+if(gold<price[type]){report("طلا کافی نیست.");return;}
+gold-=price[type];
+report(title[type]+" خریداری شد.");
+let group=document.getElementById("units");
+let u=document.createElementNS("http://www.w3.org/2000/svg","text");
+u.setAttribute("x",300+Math.random()*500);
+u.setAttribute("y",180+Math.random()*350);
+u.setAttribute("class","unit");
+u.textContent={tank:"🛡️",plane:"✈️",ship:"🚢"}[type];
+group.appendChild(u);
+update();
 }
 
-document.querySelector("#recruit").onclick=()=>{
-if(gold<150){
-log("سکه کافی برای سربازگیری نداری.");
-return;
-}
-gold-=150;
-states[0].army+=120;
-log("۱۲۰ سرباز به ارتش آریانا پیوستند.");
-draw();
-};
-
-document.querySelector("#fort").onclick=()=>{
-let c=states[selected];
-if(!c.owner){
-log("فقط در سرزمین خودت می‌توانی دژ بسازی.");
-return;
-}
-if(gold<300){
-log("ساخت دژ ۳۰۰ سکه هزینه دارد.");
-return;
-}
-gold-=300;
-c.fort++;
-log("در "+c.name+" دژ ساخته شد.");
-draw();
-};
-
-document.querySelector("#attack").onclick=()=>{
-let target=states[selected];
-let total=states.filter(x=>x.owner)
-.reduce((s,x)=>s+x.army,0);
-let force=Math.floor(total*.55);
-
-if(target.owner||total<=target.army)return;
-
-if(force>target.army+100){
+function attack(){
+let target=countries.find(c=>!c.owner);
+if(!target){report("کشور مستقلی برای حمله باقی نمانده.");return;}
+if(army<=target.army){report("ارتش شما برای این حمله کافی نیست.");return;}
 target.owner=true;
-target.army=Math.max(100,force-target.army);
-gold+=180;
-log("پیروزی! "+target.name+" تصرف شد.");
-}else{
-states[0].army=Math.max(
-100,states[0].army-Math.floor(force*.35)
-);
-log("حمله به "+target.name+" شکست خورد.");
+army=Math.floor(army*.7);
+target.army=Math.floor(army*.3);
+countries[0].army=army;
+report("پیروزی! کشور "+target.name+" تصرف شد.");
+update();
 }
-draw();
-};
 
-document.querySelector("#end").onclick=()=>{
-turn++;
-let own=states.filter(x=>x.owner);
-gold+=own.length*85;
-
-own.forEach(c=>{
-c.army+=12+Math.floor(c.pop/5000);
-});
-
-states.filter(x=>!x.owner).forEach(c=>{
-if(Math.random()<.12)c.army+=30;
-});
-
-log("درآمد دریافت شد و ارتش‌ها تقویت شدند.");
-
-if(own.length===30){
-log("پیروزی نهایی! تمام سرزمین‌ها متحد شدند.");
+function build(){
+if(gold<300){report("برای ساخت دژ ۳۰۰ طلا لازم است.");return;}
+gold-=300;report("یک دژ دفاعی ساخته شد.");update();
 }
-draw();
-};
 
-log("فرمانروایی آریانا آغاز شد.");
-draw();
+function diplomacy(){
+report("فرستاده آریانا برای مذاکره اعزام شد.");
+}
+
+function nextTurn(){
+turn++;gold+=85;food+=30;army+=20;
+countries[0].army=army;
+report("درآمد و منابع دور جدید دریافت شد.");
+update();
+}
+
+function zoom(v){
+zoomLevel=Math.min(2.5,Math.max(.7,zoomLevel*v));
+document.getElementById("map").style.transform="scale("+zoomLevel+")";
+}
+function resetZoom(){
+zoomLevel=1;
+document.getElementById("map").style.transform="scale(1)";
+}
+update();
 </script>
 </body>
 </html>

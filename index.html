@@ -1,244 +1,334 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>تاج و تخت</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRAN ROAD 3D</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#071522;color:#fff;font-family:Tahoma,Arial;overflow:hidden}
-button{font-family:inherit;cursor:pointer;color:white;background:#243648;border:1px solid #52677c;border-radius:7px;padding:8px}
-button:hover{background:#3b5269}
-#game{height:100dvh;width:100vw;position:relative;overflow:hidden}
-#mapArea{position:absolute;inset:0;background:#07364c;overflow:hidden;touch-action:none}
-#map{width:100%;height:100%;transform-origin:center;cursor:grab}
-#map:active{cursor:grabbing}
-.sea{fill:#07516c}
-.land{stroke:#d5d4aa;stroke-width:2;cursor:pointer;transition:.15s}
-.land:hover{stroke:#fff;stroke-width:4;filter:brightness(1.15)}
-.selected{stroke:#fff4a4;stroke-width:5;filter:brightness(1.2)}
-.countryName{fill:white;font:bold 19px Tahoma;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#182c35;stroke-width:4px}
-.unit{font-size:24px;text-anchor:middle;cursor:pointer}
-.unitText{fill:white;font:bold 11px Tahoma;text-anchor:middle;paint-order:stroke;stroke:#15232d;stroke-width:3px}
-.waterText{fill:#77d7ed;font:bold 25px Tahoma;text-anchor:middle;opacity:.8}
-#topbar{position:absolute;top:0;left:0;right:0;min-height:54px;background:#101820ed;border-bottom:1px solid #526171;display:flex;align-items:center;justify-content:space-around;gap:7px;padding:7px;z-index:5;flex-wrap:wrap}
-.stat{font-size:12px;white-space:nowrap}.stat b{color:#f5c65c}
-#rank{position:absolute;top:75px;left:10px;width:180px;background:#111d29eF;border:1px solid #506174;border-radius:9px;padding:10px;z-index:4}
-#rank h3,#leader h3{margin:0 0 10px;color:#f1c36a;font-size:14px}
-.rankrow{font-size:11px;padding:7px 0;border-bottom:1px solid #354454;display:flex;justify-content:space-between}
-#leader{position:absolute;top:75px;right:10px;width:190px;background:#111d29ef;border:1px solid #506174;border-radius:9px;padding:10px;z-index:4}
-.portrait{height:125px;border-radius:7px;background:linear-gradient(145deg,#66502c,#172535 65%);display:grid;place-items:center;font-size:65px;margin-bottom:8px;border:1px solid #8e7446}
-.info{font-size:11px;line-height:2}
-#bottom{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;background:#111d29ed;border:1px solid #526174;padding:7px;border-radius:10px;z-index:5;max-width:96vw;overflow-x:auto}
-.action{min-width:65px;text-align:center;font-size:11px}
-.action span{display:block;font-size:25px;margin-bottom:4px}
-#minimap{position:absolute;bottom:105px;left:10px;width:155px;height:95px;background:#102b3b;border:2px solid #657789;border-radius:7px;z-index:3}
-#notice{position:absolute;bottom:105px;right:10px;width:210px;max-height:115px;overflow:auto;background:#111d29ed;border:1px solid #526174;border-radius:8px;padding:9px;font-size:10px;line-height:1.9;z-index:3}
-#controls{position:absolute;right:10px;bottom:235px;display:grid;gap:5px;z-index:4}
-#controls button{width:37px;height:37px;font-size:17px;padding:0}
-#turnBox{position:absolute;top:75px;left:50%;transform:translateX(-50%);background:#111d29ed;border:1px solid #526174;border-radius:8px;padding:8px 13px;z-index:3;font-size:12px;white-space:nowrap}
-@media(max-width:650px){
-#rank{width:125px;top:112px;left:5px;padding:7px}
-#leader{width:125px;top:112px;right:5px;padding:7px}
-.portrait{height:80px;font-size:45px}
-.rankrow{font-size:9px}
-#topbar{justify-content:center}
-#turnBox{top:175px}
-#notice{width:145px;bottom:105px;font-size:9px}
-#minimap{width:115px;height:75px}
-#bottom{bottom:5px}
-.action{min-width:54px;font-size:10px}
+* {
+  box-sizing: border-box;
 }
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Tahoma, sans-serif;
+  background: #87ceeb;
+}
+
+#game {
+  width: 100vw;
+  height: 100vh;
+}
+
+#hud {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+  color: white;
+  background: #101820dd;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+#controls {
+  position: fixed;
+  bottom: 25px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  z-index: 10;
+}
+
+button {
+  border: none;
+  border-radius: 15px;
+  background: #182b3b;
+  color: white;
+  padding: 20px;
+  font-size: 18px;
+  touch-action: none;
+}
+
+button:active {
+  background: orange;
+}
+
 </style>
 </head>
+
 <body>
-<div id="game">
-<div id="mapArea">
-<svg id="map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet">
-<rect width="1200" height="800" class="sea"/>
-<path d="M0 0H1200V800H0Z" fill="#06425b"/>
-<g id="countries">
-<!-- ساحل شمالی -->
-<path id="c0" class="land selected" fill="#397f50" d="M0 0H1200V150L1100 170 1020 145 940 180 850 155 760 195 680 160 590 205 500 170 420 210 330 175 240 220 150 190 70 230 0 210Z"/>
-<path id="c1" class="land" fill="#a34d4d" d="M0 210L70 230 150 190 240 220 330 175 420 210 500 170 590 205 680 160 760 195 850 155 940 180 1020 145 1100 170 1200 150V310L1100 330 1000 300 900 345 800 310 700 355 600 315 500 360 400 325 300 365 200 325 100 365 0 330Z"/>
-<!-- ساحل جنوبی -->
-<path id="c2" class="land" fill="#9b773a" d="M0 490L100 460 200 485 300 445 400 480 500 440 600 475 700 435 800 470 900 430 1000 465 1100 420 1200 450V800H0Z"/>
-<path id="c3" class="land" fill="#71509a" d="M0 330L100 365 200 325 300 365 400 325 500 360 600 315 700 355 800 310 900 345 1000 300 1100 330 1200 310V450L1100 420 1000 465 900 430 800 470 700 435 600 475 500 440 400 480 300 445 200 485 100 460 0 490Z"/>
-<!-- جزایر -->
-<path class="land" fill="#c09a53" d="M450 405l40 -12 25 18 -18 25 -42 -4Z"/>
-<path class="land" fill="#c09a53" d="M680 395l32 -10 20 15 -17 22 -35 -5Z"/>
-<path class="land" fill="#c09a53" d="M850 380l30 -8 18 15 -16 19 -29 -5Z"/>
-</g>
-<g>
-<text x="350" y="90" class="countryName">آریانا</text>
-<text x="900" y="95" class="countryName">پارس</text>
-<text x="300" y="670" class="countryName">خلیج</text>
-<text x="900" y="670" class="countryName">زارون</text>
-<text x="600" y="395" class="waterText">تنگه هرمز</text>
-<text x="200" y="400" class="waterText" style="font-size:14px">خلیج فارس</text>
-<text x="1010" y="400" class="waterText" style="font-size:14px">دریای عمان</text>
-</g>
-<g id="units">
-<text x="300" y="145" class="unit">🪖</text>
-<text x="340" y="180" class="unit">🪖</text>
-<text x="420" y="130" class="unit">🛡️</text>
-<text x="800" y="115" class="unit">🪖</text>
-<text x="880" y="155" class="unit">🪖</text>
-<text x="500" y="260" class="unit">🛩️</text>
-<text x="720" y="240" class="unit">✈️</text>
-<text x="350" y="540" class="unit">🛡️</text>
-<text x="750" y="550" class="unit">🪖</text>
-<text x="580" y="450" class="unit">🚢</text>
-<text x="680" y="480" class="unit">🚢</text>
-<text x="850" y="450" class="unit">🚢</text>
-<text x="300" y="165" class="unitText">۸۵۰</text>
-<text x="800" y="135" class="unitText">۶۲۰</text>
-</g>
-</svg>
+
+<div id="hud">
+  🚛 IRAN ROAD 3D
+  <br><br>
+  سرعت: <span id="speed">0</span> KM/H
 </div>
 
-<div id="topbar">
-<div class="stat">🪙 طلا: <b id="gold">۱۲۰۰</b></div>
-<div class="stat">👥 جمعیت: <b id="population">۸۴۰۰۰</b></div>
-<div class="stat">🪖 سرباز: <b id="army">۸۵۰</b></div>
-<div class="stat">🌾 غذا: <b id="food">۹۰۰</b></div>
-<div class="stat">📈 درآمد: <b>+۸۵</b></div>
-</div>
-
-<div id="turnBox">دور <b id="turn">۱</b> · <button onclick="nextTurn()">⏭ دور بعد</button></div>
-
-<div id="rank">
-<h3>🏆 قدرت‌های برتر</h3>
-<div class="rankrow"><span>۱. آریانا 👑</span><b>۸۵۰</b></div>
-<div class="rankrow"><span>۲. پارس</span><b>۶۲۰</b></div>
-<div class="rankrow"><span>۳. زارون</span><b>۵۴۰</b></div>
-<div class="rankrow"><span>۴. خلیج</span><b>۴۸۰</b></div>
-<div class="rankrow"><span>۵. نهال</span><b>۳۹۰</b></div>
-</div>
-
-<div id="leader">
-<h3>👑 رهبر کشور</h3>
-<div class="portrait">👨🏻‍✈️</div>
-<div class="info">
-<b>شاه آرمان</b><br>
-کشور: آریانا<br>
-سن: ۴۲ سال<br>
-قدرت: ۸۵۰<br>
-وضعیت: فرمانروا
-</div>
-</div>
+<div id="game"></div>
 
 <div id="controls">
-<button onclick="zoom(1.2)">＋</button>
-<button onclick="zoom(.8)">－</button>
-<button onclick="resetZoom()">⌖</button>
+  <div>
+    <button id="left">◀</button>
+    <button id="right">▶</button>
+  </div>
+
+  <div>
+    <button id="brake">ترمز</button>
+    <button id="gas">گاز</button>
+  </div>
 </div>
 
-<div id="minimap">
-<svg viewBox="0 0 300 160" width="100%" height="100%">
-<rect width="300" height="160" fill="#07516c"/>
-<path d="M0 0H300V40L250 50 200 35 150 55 100 40 50 60 0 50Z" fill="#397f50"/>
-<path d="M0 100L50 90 100 110 150 90 200 110 250 85 300 100V160H0Z" fill="#9b773a"/>
-<rect x="90" y="50" width="120" height="60" fill="none" stroke="white" stroke-width="3"/>
-</svg>
-</div>
+<script type="module">
 
-<div id="notice">📜 گزارش‌ها<br>فرمانروایی آریانا آغاز شد.</div>
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-<div id="bottom">
-<button class="action" onclick="attack()"> <span>⚔️</span>حمله</button>
-<button class="action" onclick="recruit()"> <span>🪖</span>سربازگیری</button>
-<button class="action" onclick="buyUnit('tank')"> <span>🛡️</span>تانک</button>
-<button class="action" onclick="buyUnit('plane')"> <span>✈️</span>جنگنده</button>
-<button class="action" onclick="buyUnit('ship')"> <span>🚢</span>ناو</button>
-<button class="action" onclick="build()"> <span>🏰</span>ساخت دژ</button>
-<button class="action" onclick="diplomacy()"> <span>🤝</span>دیپلماسی</button>
-</div>
-</div>
+const scene = new THREE.Scene();
 
-<script>
-let gold=1200,army=850,food=900,turn=1,zoomLevel=1;
-let selected=0;
-const countries=[
-{name:"آریانا",army:850,owner:true},
-{name:"پارس",army:620,owner:false},
-{name:"زارون",army:540,owner:false},
-{name:"خلیج",army:480,owner:false}
-];
+scene.background = new THREE.Color(0x87ceeb);
 
-function report(text){
-document.getElementById("notice").innerHTML+=
-"<br>• "+text;
+const camera = new THREE.PerspectiveCamera(
+  70,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+});
+
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
+
+renderer.shadowMap.enabled = true;
+
+document.getElementById("game")
+.appendChild(renderer.domElement);
+
+// نورپردازی
+
+const light = new THREE.DirectionalLight(
+  0xffffff,
+  2
+);
+
+light.position.set(10,20,10);
+scene.add(light);
+
+scene.add(
+  new THREE.AmbientLight(0xffffff,1)
+);
+
+// زمین
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(500,500),
+  new THREE.MeshStandardMaterial({
+    color: 0x527b42
+  })
+);
+
+ground.rotation.x = -Math.PI/2;
+ground.position.y = -0.2;
+scene.add(ground);
+
+// جاده
+
+const road = new THREE.Mesh(
+  new THREE.BoxGeometry(12,0.2,500),
+  new THREE.MeshStandardMaterial({
+    color: 0x333333
+  })
+);
+
+road.position.z = -180;
+scene.add(road);
+
+// خطوط وسط جاده
+
+for(let i=0;i<40;i++){
+
+  const line = new THREE.Mesh(
+    new THREE.BoxGeometry(0.2,0.03,4),
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    })
+  );
+
+  line.position.set(0,0.12,-i*12);
+
+  scene.add(line);
 }
 
-function update(){
-document.getElementById("gold").textContent=gold.toLocaleString("fa-IR");
-document.getElementById("army").textContent=army.toLocaleString("fa-IR");
-document.getElementById("food").textContent=food.toLocaleString("fa-IR");
-document.getElementById("turn").textContent=turn.toLocaleString("fa-IR");
-document.getElementById("population").textContent=(84000+turn*250).toLocaleString("fa-IR");
+// کامیون
+
+const truck = new THREE.Group();
+
+// تریلر
+
+const trailer = new THREE.Mesh(
+  new THREE.BoxGeometry(2.8,3,7),
+  new THREE.MeshStandardMaterial({
+    color: 0xffffff
+  })
+);
+
+trailer.position.set(0,2,-1);
+truck.add(trailer);
+
+// کابین
+
+const cabin = new THREE.Mesh(
+  new THREE.BoxGeometry(2.7,2.6,2.5),
+  new THREE.MeshStandardMaterial({
+    color: 0x174e85
+  })
+);
+
+cabin.position.set(0,1.8,3.7);
+truck.add(cabin);
+
+// چرخ ها
+
+for(let x of [-1.5,1.5]){
+
+  for(let z of [-3,-1,2.5,4]){
+
+    const wheel = new THREE.Mesh(
+      new THREE.CylinderGeometry(
+        0.5,0.5,0.35,24
+      ),
+      new THREE.MeshStandardMaterial({
+        color: 0x111111
+      })
+    );
+
+    wheel.rotation.z = Math.PI/2;
+    wheel.position.set(x,0.55,z);
+
+    truck.add(wheel);
+  }
 }
 
-function recruit(){
-if(gold<150){report("طلا برای سربازگیری کافی نیست.");return;}
-gold-=150;army+=120;countries[0].army=army;
-report("۱۲۰ سرباز جدید جذب شدند.");update();
+truck.position.z = 5;
+scene.add(truck);
+
+// دوربین
+
+camera.position.set(0,6,14);
+camera.lookAt(0,1,0);
+
+// کنترل
+
+let speed = 0;
+
+let gas = false;
+let brake = false;
+let left = false;
+let right = false;
+
+function control(id,variable){
+
+  const btn = document.getElementById(id);
+
+  btn.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    window[variable] = true;
+  });
+
+  ["pointerup","pointercancel","pointerleave"].forEach(event=>{
+    btn.addEventListener(event,()=>{
+      window[variable] = false;
+    });
+  });
 }
 
-function buyUnit(type){
-let price={tank:350,plane:500,ship:650};
-let title={tank:"تانک",plane:"جنگنده",ship:"ناو جنگی"};
-if(gold<price[type]){report("طلا کافی نیست.");return;}
-gold-=price[type];
-report(title[type]+" خریداری شد.");
-let group=document.getElementById("units");
-let u=document.createElementNS("http://www.w3.org/2000/svg","text");
-u.setAttribute("x",300+Math.random()*500);
-u.setAttribute("y",180+Math.random()*350);
-u.setAttribute("class","unit");
-u.textContent={tank:"🛡️",plane:"✈️",ship:"🚢"}[type];
-group.appendChild(u);
-update();
+control("gas","gas");
+control("brake","brake");
+control("left","left");
+control("right","right");
+
+// کیبورد
+
+window.addEventListener("keydown",e=>{
+
+  if(e.key==="ArrowUp" || e.key==="w") gas=true;
+  if(e.key==="ArrowDown" || e.key==="s") brake=true;
+  if(e.key==="ArrowLeft" || e.key==="a") left=true;
+  if(e.key==="ArrowRight" || e.key==="d") right=true;
+
+});
+
+window.addEventListener("keyup",e=>{
+
+  if(e.key==="ArrowUp" || e.key==="w") gas=false;
+  if(e.key==="ArrowDown" || e.key==="s") brake=false;
+  if(e.key==="ArrowLeft" || e.key==="a") left=false;
+  if(e.key==="ArrowRight" || e.key==="d") right=false;
+
+});
+
+// حلقه بازی
+
+function animate(){
+
+  requestAnimationFrame(animate);
+
+  if(gas) speed += 0.12;
+  if(brake) speed -= 0.3;
+
+  speed *= 0.995;
+
+  speed = Math.max(0,Math.min(speed,120));
+
+  if(left) truck.position.x += 0.08;
+  if(right) truck.position.x -= 0.08;
+
+  truck.position.x = THREE.MathUtils.clamp(
+    truck.position.x,-4,4
+  );
+
+  document.getElementById("speed").innerText =
+  Math.floor(speed);
+
+  camera.position.x = truck.position.x;
+
+  camera.lookAt(
+    truck.position.x,
+    1,
+    -5
+  );
+
+  renderer.render(scene,camera);
+
 }
 
-function attack(){
-let target=countries.find(c=>!c.owner);
-if(!target){report("کشور مستقلی برای حمله باقی نمانده.");return;}
-if(army<=target.army){report("ارتش شما برای این حمله کافی نیست.");return;}
-target.owner=true;
-army=Math.floor(army*.7);
-target.army=Math.floor(army*.3);
-countries[0].army=army;
-report("پیروزی! کشور "+target.name+" تصرف شد.");
-update();
-}
+animate();
 
-function build(){
-if(gold<300){report("برای ساخت دژ ۳۰۰ طلا لازم است.");return;}
-gold-=300;report("یک دژ دفاعی ساخته شد.");update();
-}
+// تغییر اندازه صفحه
 
-function diplomacy(){
-report("فرستاده آریانا برای مذاکره اعزام شد.");
-}
+window.addEventListener("resize",()=>{
 
-function nextTurn(){
-turn++;gold+=85;food+=30;army+=20;
-countries[0].army=army;
-report("درآمد و منابع دور جدید دریافت شد.");
-update();
-}
+  camera.aspect =
+  window.innerWidth/window.innerHeight;
 
-function zoom(v){
-zoomLevel=Math.min(2.5,Math.max(.7,zoomLevel*v));
-document.getElementById("map").style.transform="scale("+zoomLevel+")";
-}
-function resetZoom(){
-zoomLevel=1;
-document.getElementById("map").style.transform="scale(1)";
-}
-update();
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
+
+});
+
 </script>
+
 </body>
 </html>
